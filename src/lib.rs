@@ -65,15 +65,15 @@ impl OmnigetPlugin for ConvertPlugin {
                     let active = active.clone();
 
                     tokio::spawn(async move {
-                        let (tx, mut rx) = mpsc::channel::<f64>(32);
+                        let (tx, mut rx) = mpsc::channel::<omniget_core::models::progress::ProgressUpdate>(32);
 
                         let host_progress = host.clone();
                         let cid = conversion_id;
                         let progress_forwarder = tokio::spawn(async move {
-                            while let Some(percent) = rx.recv().await {
+                            while let Some(update) = rx.recv().await {
                                 let _ = host_progress.emit_event(
                                     "convert-progress",
-                                    serde_json::json!({ "id": cid, "percent": percent }),
+                                    serde_json::json!({ "id": cid, "percent": update.percent }),
                                 );
                             }
                         });
